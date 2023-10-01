@@ -1,41 +1,44 @@
 import { useEffect, useState } from "react";
 import Header from "./components/Header";
 import Products from "./components/Products";
+
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { data } from "./Data";
+
 function App() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch("https://fakestoreapi.com/products");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setProducts(data);
+  const [cartVisible, setCartVisible] = useState(false);
 
-        // Extract unique categories from products and store them in categories state
-        const uniqueCategories = Array.from(
-          new Set(data.map((product) => product.category))
-        );
-        setCategories(uniqueCategories);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
-    fetchData();
-  }, []);
-  console.log(categories);
+  const toggleCart = () => {
+    setCartVisible(!cartVisible);
+  };
+
+  useEffect(() => {
+    setProducts(data);
+    const uniqueCategories = Array.from(
+      new Set(products.map((product) => product.category.name))
+    );
+    setCategories(uniqueCategories);
+  }, [products]);
+
   return (
     <BrowserRouter>
-      <Header categories={categories} />
+      <Header categories={categories} toggleCart={toggleCart} />
+
       <Routes>
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <Route
             path={`/${category}`}
-            element={<Products category={category} products={products} />}
+            element={
+              <Products
+                category={category}
+                products={products}
+                key={index}
+                cartVisible={cartVisible}
+              />
+            }
           />
         ))}
       </Routes>
